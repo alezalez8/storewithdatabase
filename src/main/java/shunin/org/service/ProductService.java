@@ -1,10 +1,9 @@
 package shunin.org.service;
 
-import org.hibernate.hql.internal.ast.tree.Statement;
-import shunin.org.entity.Client;
 import shunin.org.entity.Products;
 
 import javax.persistence.EntityManager;
+import javax.persistence.EntityNotFoundException;
 import javax.persistence.EntityTransaction;
 import javax.persistence.TypedQuery;
 import java.util.List;
@@ -19,8 +18,15 @@ public class ProductService {
     }
 
     public List<Products> getAllProducts() {
-        TypedQuery<Products> query = entityManager.createQuery("SELECT p FROM Products p", Products.class);
-        List<Products> productsList = query.getResultList();
+        List<Products> productsList = null;
+        try {
+            TypedQuery<Products> query = entityManager.createQuery("SELECT p FROM Products p", Products.class);
+            productsList = query.getResultList();
+            entityTransaction.commit();
+        } catch (Exception e) {
+            if (entityTransaction.isActive())
+                entityTransaction.rollback();
+        }
         return productsList;
     }
 
@@ -29,11 +35,11 @@ public class ProductService {
         try {
             entityManager.persist(product);
             entityTransaction.commit();
-        } catch (IllegalStateException e) {
-            if (entityManager.isOpen()) {
-                entityManager.close();
-            }
+        } catch (Exception e) {
+            if (entityTransaction.isActive())
+                entityTransaction.rollback();
         }
+
     }
 
     public Products findProductById(Long id) {
@@ -48,26 +54,23 @@ public class ProductService {
             product.setAmount(amount);
             product.setPrice(price);
             product.setTitle(title);
-            entityManager.persist(product);
             entityTransaction.commit();
-        } catch (IllegalStateException e) {
-            if (entityManager.isOpen()) {
-                entityManager.close();
-            }
+        } catch (Exception e) {
+            if (entityTransaction.isActive())
+                entityTransaction.rollback();
         }
 
     }
 
     public void deleteProduct(Long id) {
+        entityTransaction.begin();
         try {
-            entityTransaction.begin();
             Products product = entityManager.getReference(Products.class, id);
             entityManager.remove(product);
             entityManager.flush();
             entityTransaction.commit();
 
-        } catch (Exception e) {
-            entityManager.close();
+        } catch (IllegalStateException | EntityNotFoundException e) {
             System.out.println("This DB not contain product with id = " + id);
         }
     }

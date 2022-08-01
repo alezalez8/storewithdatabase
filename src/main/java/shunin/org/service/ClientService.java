@@ -1,7 +1,7 @@
 package shunin.org.service;
 
 import shunin.org.entity.Client;
-import shunin.org.entity.Order;
+import shunin.org.entity.Orders;
 
 import javax.persistence.EntityManager;
 import javax.persistence.EntityTransaction;
@@ -21,8 +21,7 @@ public class ClientService {
 
     public List<Client> getAllClients() {
         TypedQuery<Client> query = entityManager.createQuery("SELECT c FROM Client c", Client.class);
-        List<Client> clientList = query.getResultList();
-        return clientList;
+        return query.getResultList();
     }
 
     public void addClient(Client client) {
@@ -31,31 +30,28 @@ public class ClientService {
             entityManager.persist(client);
             entityTransaction.commit();
         } catch (IllegalStateException e) {
-            if (entityManager.isOpen()) {
-                entityManager.close();
-
-            }
+            if (entityTransaction.isActive())
+                entityTransaction.rollback();
         }
+
     }
 
     public Client findClientById(Long id) {
         return entityManager.find(Client.class, id);
     }
 
-    public void saveClientWithOrders(Client client, Order... orders) {
+    public void saveClientWithOrders(Client client, Orders... orders) {
         entityTransaction.begin();
-        // List<Client> clientList = new ArrayList<>(Collections.singletonList(client));
-        List<Order> orderList = new ArrayList<>();
-        for (Order order : orders
+        List<Orders> orderList = new ArrayList<>();
+        for (Orders order : orders
         ) {
             order.setClient(client);
             orderList.add(order);
         }
-
         client.setOrders(orderList);
         try {
             entityManager.persist(client);
-            for (Order order : orders
+            for (Orders order : orders
             ) {
                 entityManager.persist(order);
             }
@@ -67,10 +63,6 @@ public class ClientService {
             throw new RuntimeException(ex);
         }
     }
-
-
-
-
 
 
 }

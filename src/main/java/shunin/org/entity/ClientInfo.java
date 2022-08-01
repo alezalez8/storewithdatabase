@@ -6,7 +6,7 @@ import javax.validation.constraints.Email;
 import javax.validation.constraints.Min;
 import java.time.LocalDateTime;
 
-@Entity
+
 @Table(name = "Client_info")
 public class ClientInfo {
 

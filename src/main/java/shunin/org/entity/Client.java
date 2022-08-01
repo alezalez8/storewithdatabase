@@ -27,7 +27,7 @@ public class Client {
     private String surename;
 
     @OneToMany(mappedBy = "client", cascade = CascadeType.ALL)
-    private List<Order> orders = new ArrayList<>();
+    private List<Orders> orders = new ArrayList<>();
 
     public Client() {
     }
@@ -61,11 +61,11 @@ public class Client {
         this.surename = surename;
     }
 
-    public List<Order> getOrders() {
+    public List<Orders> getOrders() {
         return orders;
     }
 
-    public void setOrders(List<Order> orders) {
+    public void setOrders(List<Orders> orders) {
         this.orders = orders;
     }
 
